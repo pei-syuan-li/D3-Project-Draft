@@ -5,22 +5,24 @@
     <meta charset="UTF-8">
     <title>D3.js Project_Pei-Syuan Li</title>
     <script src="https://d3js.org/d3.v3.js"></script>
-
-    <script src="http://d3js.org/topojson.v1.min.js"></script>
-    <!--       <script src="topojson.min.js"></script>-->
+    <script src="topojson.min.js"></script>
+    <!--    <script src="http://d3js.org/topojson.v1.min.js"></script>-->
     <style>
-        .all{
+        .all {
             background: rgba(93, 185, 247, 0.53);
         }
+        
         .map-boundary {
-            stroke: rgba(85, 76, 76, 0.21); /* #eee*/
+            stroke: rgba(85, 76, 76, 0.21);
+            /* #eee*/
         }
         
         #tooltip {
             position: absolute;
             left: 20px;
             top: 60px;
-            background: rgba(255, 239, 0, 0.88);/*  #fff; */
+            background: rgba(255, 239, 0, 0.88);
+            /*  #fff; */
             width: auto;
             height: auto;
             padding: 0px 10px;
@@ -36,16 +38,16 @@
 
 <body>
     <div class=all>
-    <h2> D3.js Final Project--大專院校境外學生視覺化地圖 by Pei-Syuan Li</h2>                            
-    <div id="tooltip" class="hidden">
-        <p><strong id="coun">Country</strong></p>
-        <p id="tot">total</p>
+        <h2> D3.js Final Project--大專院校境外學生視覺化地圖 by Pei-Syuan Li</h2>
+        <div id="tooltip" class="hidden">
+            <p><strong id="coun">Country</strong></p>
+            <p id="tot">total</p>
+        </div>
+
+        <svg width="1200" height="800"></svg>
+
     </div>
-
-    <svg width="1200" height="800"></svg>
-
-       </div>
-               <script>
+    <script>
         var tempColor;
 
         //1.地理資料檔: topoTaiwan.json
@@ -193,10 +195,10 @@
             var selection = d3.select("svg").selectAll("path").data(topo.features);
 
             selection.enter().append("path") //.on("mouseover.log", function(d) { console.log(d.id); }) 
-//            .attr("id", function (d, i) {
-//                o_id[i] = d.id;
-//                return o_id; //topo檔國家的id
-//            })
+                //            .attr("id", function (d, i) {
+                //                o_id[i] = d.id;
+                //                return o_id; //topo檔國家的id
+                //            })
             selection.exit().remove();
             selection.classed("map-boundary", true).attr("d", path);
         }
