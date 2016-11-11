@@ -1,0 +1,227 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>D3.js Project_Pei-Syuan Li</title>
+    <script src="https://d3js.org/d3.v3.js"></script>
+
+    <script src="http://d3js.org/topojson.v1.min.js"></script>
+    <!--       <script src="topojson.min.js"></script>-->
+    <style>
+        .all{
+            background: rgba(93, 185, 247, 0.53);
+        }
+        .map-boundary {
+            stroke: rgba(85, 76, 76, 0.21); /* #eee*/
+        }
+        
+        #tooltip {
+            position: absolute;
+            left: 20px;
+            top: 60px;
+            background: rgba(255, 239, 0, 0.88);/*  #fff; */
+            width: auto;
+            height: auto;
+            padding: 0px 10px;
+            border-radius: 5px;
+            box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        #tooltip.hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class=all>
+    <h2> D3.js Final Project--大專院校境外學生視覺化地圖 by Pei-Syuan Li</h2>                            
+    <div id="tooltip" class="hidden">
+        <p><strong id="coun">Country</strong></p>
+        <p id="tot">total</p>
+    </div>
+
+    <svg width="1200" height="800"></svg>
+
+       </div>
+               <script>
+        var tempColor;
+
+        //1.地理資料檔: topoTaiwan.json
+        d3.json("https://gist.githubusercontent.com/abenrob/787723ca91772591b47e/raw/8a7f176072d508218e120773943b595c998991be/world.json", function (topoData) {
+            //https://gist.githubusercontent.com/mbostock/4090846/raw/07e73f3c2d21558489604a0bc434b3a5cf41a867/world-110m.json
+
+            bind(topoData);
+            render();
+        });
+
+        //判定資料中的id是否有在地圖的內
+        Array.prototype.contains = function (element) {
+            for (var i = 0; i < this.length; i++) {
+                if (this[i] == element) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function render() {
+            d3.selectAll("path")
+                .attr({
+                    fill: 'rgba(155, 238, 144, 0.63)' //cc
+                        //function (d) { return fScale(i); }
+                })
+                .on("mouseover", function (d) {
+                    tempColor = d3.select(this).attr('fill'); // 
+                    var cid = d.id;
+                    var th = this;
+                    // cc = []
+                    //                    for (var j = 0; j < o_id.length; j++) {
+                    //                        cc[j] = 'rgba(155, 238, 144, 0.78)'
+                    //                    }
+                    d3.csv("104_大專校院境外學生人數統計.csv", function (dataset) {
+
+                        var arr_id = dataset.map(function (a) {
+                            return a.id;
+                        })
+                        var arr_id1 = arr_id.filter(function (a) {
+                            return a != "";
+                        });
+                        var arr_total = dataset.map(function (a) {
+                            return a.total;
+                        })
+                        var arr_total1 = arr_total.filter(function (a) {
+                            return a != "";
+                        });
+                        arr_id1 = trans(arr_id1);
+                        //console.log(o_id)
+                        //console.log(arr_id1) // 轉成數字
+                        max = Math.max.apply(null, trans(arr_total1))
+                        min = Math.min.apply(null, trans(arr_total1))
+                            // 依照學生人數分成5組
+                        q = d3.scale.quantile().domain(trans(arr_total1)).range([0, 25, 50, 75, 100]);
+                        // group_total = d3.scale.quantize().domain([min, max]).range(seq(10));
+                        // 把顏色由淺到深分成5組
+                        var fcolor = d3.scale
+                            .linear()
+                            .domain([1, 5])
+                            .range(['#ffebcc', '#ff9900']).clamp(true);
+                        //red: #ffe6e6 #ff0000; blue: '#ccccff','#0000cc'       
+                        var cc;
+                        if (arr_id1.contains(cid) === true) {
+                            k = arr_id1.indexOf(cid);
+                            var tot = trans(arr_total1)[k];
+                            cc = fcolor((q(tot) + 25) / 25);
+                        } else {
+                            cc = 'rgba(124, 240, 109, 0.88)' //tempColor// "rgba(245, 255, 1, 0.33)";
+                        }
+                        console.log(cc);
+                        d3.select(th).attr({
+                            fill: cc
+                        });
+                    });
+                })
+                .on("mouseout", function (d) {
+                    //d3.select(this).attr({
+                    // fill: tempColor
+                    //                    })
+                    d3.select("#tooltip").classed("hidden", true);
+                })
+
+            .on("click", function (d) {
+                var coordinates = d3.mouse(this);
+                var xPos = coordinates[0] + 10;
+                var yPos = coordinates[1] + 10;
+                var tooltip = d3.select("#tooltip").style({
+                    left: xPos + "px",
+                    top: yPos + "px"
+                });
+                var cid = d.id;
+                console.log(cid);
+                d3.csv("104_大專校院境外學生人數統計.csv", function (dataset) {
+                    var arr_total = dataset.map(function (a) {
+                        return a.total;
+                    })
+                    var arr_total1 = arr_total.filter(function (a) {
+                        return a != "";
+                    });
+                    var arr_id = dataset.map(function (a) {
+                        return a.id;
+                    })
+                    var arr_id1 = arr_id.filter(function (a) {
+                        return a != "";
+                    });
+                    var arr_country = dataset.map(function (a) {
+                        return a.country;
+                    })
+                    var arr_country1 = arr_country.filter(function (a) {
+                        return a != "";
+                    });
+                    arr_id1 = trans(arr_id1);
+
+                    if (arr_id1.contains(cid) === true) {
+                        k = arr_id1.indexOf(cid);
+                        console.log(k)
+                        d3.select("#coun").text(arr_country1[k]);
+                        d3.select("#tot").text('境外學生人數: ' + arr_total1[k]);
+                    } else {
+                        d3.select("#coun").text('');
+                        d3.select("#tot").text('境外學生人數: ' + 0);
+                    }
+                });
+                d3.select("#tooltip").classed("hidden", false);
+                //console.log(d.properties.C_Name);
+
+            });
+        }
+
+        var o_id = []; //topo檔國家的id
+
+        function bind(topoData) {
+            // 2.地理投影器: 設定投影方式(麥卡托)、定位點([經,緯度])、縮放(scale)
+            var projection = d3.geo.mercator().scale(140).translate([500, 400]);
+            //.center([121, 24]).scale(6000);
+            // 3.路徑產生器: d3.geo.path()
+            var path = d3.geo.path().projection(projection);
+
+            // 4.地理資料檔: 使用topojson.js載入地理資料
+            var topo = topojson.feature(topoData, topoData.objects["countries"]);
+
+
+            // 綁定path與載入的地理資料(features:每一地理區劃)
+            var selection = d3.select("svg").selectAll("path").data(topo.features);
+
+            selection.enter().append("path") //.on("mouseover.log", function(d) { console.log(d.id); }) 
+//            .attr("id", function (d, i) {
+//                o_id[i] = d.id;
+//                return o_id; //topo檔國家的id
+//            })
+            selection.exit().remove();
+            selection.classed("map-boundary", true).attr("d", path);
+        }
+        // 把字串轉成數字, 確定可以計算!!
+        function trans(f) {
+            var f2 = []
+            for (var j = 0; j < f.length; j++) {
+                var aa = f[j].split(',').join('');
+                f2[j] = parseFloat(aa);
+            }
+            return f2;
+        };
+
+
+
+        // 將total總人數分成n組 (range)
+        function seq(n) {
+            var S = [];
+            for (var j = 1; j < (n + 1); j++) {
+                S.push(j)
+            }
+            return S;
+        }
+    </script>
+
+</body>
+
+</html>
